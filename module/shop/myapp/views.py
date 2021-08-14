@@ -60,6 +60,7 @@ class UpdateProductView(LoginRequiredMixin, UpdateView):
 class ProductPurchaseView(LoginRequiredMixin, CreateView):
     login_url = "login/"
     form_class = PurchaseProductForm
+    template_name = 'purchase_create.html'
     http_method_names = ['post', 'get']
     paginate_by = 3
     success_url='/'

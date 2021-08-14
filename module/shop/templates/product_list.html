@@ -30,9 +30,9 @@
         {% elif request.user.is_authenticated %}
             {% csrf_token %}
             {% if obj.in_stock > 0 %}
-                <form method="post" action="{% url "purchase_product" obj.pk %}">
-                    {% csrf_token %}
+                <form method="post" action="{% url "purchase_create" obj.pk %}">
                     Quantity to buy: {{buy_form.quantity}}
+                    {% csrf_token %}
                     <button type="submit" value="Buy">Buy</button>
             {% endif %}
                 </form>
