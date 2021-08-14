@@ -8,7 +8,7 @@ urlpatterns = [
     path('logout/', Logout.as_view(), name = 'logout'),
     path('product/add_product', AddProductView.as_view(), name = 'add_product'),
     path('product/<int:pk>/update/', UpdateProductView.as_view(), name = 'update_product'),
-    path('product/purchase/<int:pk>', ProductPurchaseView.as_view(), name = 'purchase_create'),
+    path('product/purchase/', ProductPurchaseView.as_view(), name = 'purchase_create'),
     path('product/purchases', ProductPurchaseListView.as_view(), name = 'purchases'),
     path('product/return/', ReturnProductView.as_view(), name = 'return_product'),
 ]

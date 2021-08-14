@@ -1,12 +1,11 @@
-from django.http import  HttpResponseRedirect
 from django.shortcuts import render
 from django.contrib import messages
 from myapp.forms import RegisterForm, ProductCreateForm, AddProductForm, ReturnForm, PurchaseProductForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView
-from myapp.models import *
-from django.urls import reverse_lazy
+from myapp.models import Product, Purchase, Return
+
 
 
 class ProductListView(ListView):
@@ -15,7 +14,7 @@ class ProductListView(ListView):
     template_name = 'product_list.html'
     login_url = 'login/'
     extra_context = {'buy_form': PurchaseProductForm()}
-    
+
 
 class Login(LoginView):
     next_page = '/'
@@ -68,8 +67,7 @@ class ProductPurchaseView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         purchase = form.save(commit=False)
         purchase.consumer = self.request.user
-        purchase.product = Product.objects.get(pk=self.kwargs["pk"])
-        purchase.save()
+        purchase.product = Product.objects.get(pk=self.request.POST.get('product_id'))
         return super().form_valid(form=form)
 
     
