@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<h1 align="center"  style="color:#0000FF; font-size:30px">List of products</h1>
+{% endblock %}
+
+{% block nav %}
+    {% if not request.user.is_authenticated %} 
+        <li><a href={% url 'login' %}><button> Login </button></a></li>
+        <li><a href={% url 'register' %}><button> Registration </button></a></li>
+        {% else %}
+            <li><a href={% url 'logout' %}><button> Logout </button></a></li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div>
+    {% for obj in object_list %}
+    <div>
+        <h3>{{ obj.title }} </h3>
+        Price: {{ obj.price }} <br>
+        {% if obj.in_stock > 0 %}
+            In stock: {{ obj.in_stock }}
+        {% else %}
+            <span style="background-color: red">This product not available</span>
+        {% endif %}
+    </div>    
+        {% if request.user.is_superuser %}
+            <a href="{% url 'update_product' obj.pk %}"><button>Change</button></a>
+        {% elif request.user.is_authenticated %}
+            {% csrf_token %}
+            {% if obj.in_stock > 0 %}
+                <form method="post" action="{% url "purchase_product" obj.pk %}">
+                    {% csrf_token %}
+                    Quantity to buy: {{buy_form.quantity}}
+                    <button type="submit" value="Buy">Buy</button>
+            {% endif %}
+                </form>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

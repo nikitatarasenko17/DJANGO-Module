@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <h1 align="center"  style="color:#0000FF; font-size:30px">Add product page </h1>
+{% endblock %} 
+
+
+{% block content %}
+<div>
+    <a href="{% url 'logout' %}">Logout</a>
+</div>
+<form method="post" action="{% url 'add_product' %}">
+    {% csrf_token %}
+    {{ add_form }}
+    <input type="submit" value="Create">
+</form>
+{% endblock %}

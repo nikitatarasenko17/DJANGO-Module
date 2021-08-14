@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+ 
+{% block title %}
+    <h1 align="center"  style="color:#0000FF; font-size:30px">Update purchases page </h1>
+{% endblock %} 
+
+
+{% block content %}
+    <h1>Update Product</h1>
+    <form action="" method="post">{% csrf_token %}
+      {{ form.as_p }}
+    <button type="submit" value="update">Update</button>
+    </form>
+{% endblock %}
