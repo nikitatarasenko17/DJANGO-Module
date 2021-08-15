@@ -4,16 +4,19 @@
     <h1 align="center"  style="color:#0000FF; font-size:30px">Return purchases page </h1>
 {% endblock %}
 
+{% block nav %}
+  <li><a href={% url 'logout' %}><button> Logout </button></a></li>
+  <li><a href={% url 'product_list' %}><button> Return to main page </button></a></li><br>  
+{% endblock %}
 
 {% block content %}
-<div>
-    <a href="{% url 'logout' %}">Logout</a>
-</div>
-<form method="post" action="{% url 'return_product' %}">
-    {% if request.user.is_auntificated %}
-    {% csrf_token %}
-    {{ return_form }}
-    {% endif %}
+{% for obj in object_list %}
+      {% if obj.consumer == request.user %}
+        Product: {{ obj.product }}<br>
+        Quantity: {{ obj.quantity }}<br>
+        Date: {{obj.created}}<br>
+
+{% endfor %}    
     <input type="submit" value="Create">
 </form>
 {% endblock %}

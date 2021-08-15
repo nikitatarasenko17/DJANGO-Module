@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib import messages
+from django.views.generic.edit import DeleteView
 from myapp.forms import RegisterForm, ProductCreateForm, AddProductForm, ReturnForm, PurchaseProductForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
@@ -11,15 +12,16 @@ from myapp.models import Product, Purchase, Return
 class ProductListView(ListView):
     model = Product
     paginate_by = 3
+    ordering = ['title']
     template_name = 'product_list.html'
-    login_url = 'login/'
+    login_url = '/login/'
     extra_context = {'buy_form': PurchaseProductForm()}
 
 
 class Login(LoginView):
     next_page = '/'
     template_name = 'login.html'
-
+    
 class Register(CreateView):
     form_class = RegisterForm
     template_name = 'register.html'
@@ -60,7 +62,6 @@ class ProductPurchaseView(LoginRequiredMixin, CreateView):
     login_url = "login/"
     form_class = PurchaseProductForm
     template_name = 'purchase_create.html'
-    http_method_names = ['post', 'get']
     paginate_by = 3
     success_url='/'
 
@@ -75,20 +76,26 @@ class ProductPurchaseListView(LoginRequiredMixin, ListView):
     login_url = "login/"
     model = Purchase
     template_name = 'purchase_product.html'
-          
+              
     def purchase_list(self):
         consumer = self.request.user
         return consumer.product.all()
 
 class ReturnProductView(LoginRequiredMixin, CreateView):
     login_url = "login/"
-    http_method_names = ['get', 'post']
     form_class = ReturnForm
-    template_name = 'return_product.html'
-    extra_context = {'return_form': ReturnForm()}
-
+    success_url='/'
+    
     def form_valid(self, form):
-        obj = form.save(commit=False)
-        obj.user = self.request.user
-        obj.save()
-        return super().form_valid(form=form)
+        ret_product = Purchase.objects.get(pk=self.request.POST.get('product_id'))
+        ret_product_return = form.save(commit=False)
+        ret_product_return = ret_product
+        ret_product_return.save()
+
+class Confirm(DeleteView):
+    model = Return
+    success_url = 'product/return/'
+
+    # def return()
+           
+      

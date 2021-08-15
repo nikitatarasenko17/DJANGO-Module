@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
+from django.db import transaction
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 
@@ -52,7 +54,17 @@ class Return(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-            ordering = ('-created_date',)
+        ordering = ('-created_date',)
+
+    def save(self, *args, **kwargs):
+        if (timezone.now() - self.ret_product.created_date).seconds < 180:
+            self.ret_product = True
+
+            with transaction.atomic():
+                self.ret_product.save()
+                super(Return, self).save(*args, **kwargs)
+        else:
+            raise ValidationError('You want to return product so late')
 
     def __str__(self):
         return self.ret_product

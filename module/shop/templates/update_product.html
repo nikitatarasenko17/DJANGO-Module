@@ -4,6 +4,10 @@
     <h1 align="center"  style="color:#0000FF; font-size:30px">Update purchases page </h1>
 {% endblock %} 
 
+{% block nav %}
+  <li><a href={% url 'logout' %}><button> Logout </button></a></li>
+  <li><a href={% url 'product_list' %}><button> Return to main page </button></a></li><br>  
+{% endblock %}
 
 {% block content %}
     <h1>Update Product</h1>

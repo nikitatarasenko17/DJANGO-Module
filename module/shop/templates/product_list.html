@@ -8,8 +8,13 @@
     {% if not request.user.is_authenticated %} 
         <li><a href={% url 'login' %}><button> Login </button></a></li>
         <li><a href={% url 'register' %}><button> Registration </button></a></li>
-        {% else %}
+    {% elif not request.user.is_superuser %}
             <li><a href={% url 'logout' %}><button> Logout </button></a></li>
+            <li><a href={% url 'purchases' %}><button> My purchases </button></a></li>
+            <p align="right" style="color:#ff0000d8; font-size:25px"><strong> My wallet: {{ request.user.wallet }}</strong></p>
+    {% else %}
+            <li><a href={% url 'logout' %}><button> Logout </button></a></li>
+            <li><a href={% url 'add_product' %}><button> Create product </button></a></li>
     {% endif %}
 {% endblock %}
 
@@ -30,7 +35,7 @@
         {% elif request.user.is_authenticated %}
             {% csrf_token %}
             {% if obj.in_stock > 0 %}
-                <form method="post" action="{% url "purchase_create" %}">
+                    <form method="post" action="{% url "purchase_create" %}">
                     Quantity to buy: {{buy_form.quantity}}
                     {% csrf_token %}
                     <input type="hidden" name='product_id' value="{{obj.pk}}">
