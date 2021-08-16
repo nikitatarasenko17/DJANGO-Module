@@ -5,14 +5,4 @@
 {% endblock %}
  
 {% block content %}
-{% for obj in object_list %}
-        Product: {{ obj.product }}<br>
-        Price: {{ obj.price }}<br>
-        Quantity: {{ obj.quantity }}<br>
-        Date: {{obj.created}}<br>
-{% endfor %}
-      <form action="" method="post">{% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" value="update">Add to cart</button>
-      </form>
 {% endblock %}

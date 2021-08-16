@@ -21,7 +21,7 @@ class AddProductForm(ModelForm):
 class ReturnForm(ModelForm):
     class Meta:
         model = Return
-        fields = ('ret_product',)
+        fields = []
 
 class PurchaseProductForm(ModelForm):
     class Meta:

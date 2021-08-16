@@ -15,6 +15,9 @@
     {% else %}
             <li><a href={% url 'logout' %}><button> Logout </button></a></li>
             <li><a href={% url 'add_product' %}><button> Create product </button></a></li>
+            {% if not purchase.status and not purchase.return_status %}
+            <li><a href={% url 'returns' %}><button> Go to return list </button></a></li>
+            {% endif%}
     {% endif %}
 {% endblock %}
 

@@ -10,13 +10,21 @@
 {% endblock %}
 
 {% block content %}
-{% for obj in object_list %}
-      {% if obj.consumer == request.user %}
-        Product: {{ obj.product }}<br>
-        Quantity: {{ obj.quantity }}<br>
-        Date: {{obj.created}}<br>
 
-{% endfor %}    
-    <input type="submit" value="Create">
-</form>
+{% for obj in object_list %}
+
+    <p>Consumer: {{ obj }}<br>
+      Return product: {{ obj.ret_product.product }}<br>
+      Return_time: {{ obj.created }}</p>
+    <form method="post" action="{% url "confirm" obj.ret_product.product.pk %}">
+      {% csrf_token %}
+      <button type="submit" value="Confirm"> Confirm </button>
+    </form>
+
+    <form method="post" action="{% url "reject" obj.ret_product.pk %}">
+      {% csrf_token %}
+      <button type="submit" value="Reject"> Reject </button>
+    </form>
+
+{% endfor %}
 {% endblock %}

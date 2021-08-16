@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.db import transaction
-from django.contrib import messages
 from django.core.exceptions import ValidationError
 
 class MyUser(AbstractUser):
@@ -28,6 +27,8 @@ class Purchase(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product')
     quantity = models.PositiveIntegerField(default=1)
     created = models.DateTimeField(auto_now_add=True)
+    status = models.BooleanField(default=False)
+    return_status = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('-created',)
@@ -51,15 +52,14 @@ class Purchase(models.Model):
 
 class Return(models.Model):
     ret_product = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name='ret_product')
-    created_date = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-created_date',)
+        ordering = ['-created']
 
     def save(self, *args, **kwargs):
-        if (timezone.now() - self.ret_product.created_date).seconds < 180:
-            self.ret_product = True
-
+        if (timezone.now() - self.ret_product.created).seconds < 180:
+            self.ret_product.status = True
             with transaction.atomic():
                 self.ret_product.save()
                 super(Return, self).save(*args, **kwargs)
@@ -67,4 +67,4 @@ class Return(models.Model):
             raise ValidationError('You want to return product so late')
 
     def __str__(self):
-        return self.ret_product
+        return str(self.ret_product)

@@ -8,6 +8,7 @@
   <li><a href={% url 'logout' %}><button> Logout </button></a></li>
   <li><a href={% url 'product_list' %}><button> Return to main page </button></a></li><br>  
   <p align="right" style="color:#ff0000d8; font-size:25px"><strong> My wallet: {{ request.user.wallet }}</strong></p>
+
 {% endblock %}
  
 {% block content %}
@@ -16,11 +17,14 @@
         Product: {{ obj.product }}<br>
         Quantity: {{ obj.quantity }}<br>
         Date: {{obj.created}}<br>
-        <form method="post" action="{% url 'return_product' %}">{% csrf_token %}
-        {{ form.as_p }}
-      <button type="submit" value="update">Return</button>
-      </form>
+
+        {% if not purchase.status and not purchase.return_status %}
+          <form method="post" action="{% url "ret_product" %}">
+            {% csrf_token %}
+            <input type="hidden" name='product_id' value="{{obj.pk}}">
+            <button type="submit" value="Return">Return</button>
+          </form>
+        {% endif %}
     {% endif %}
-    </div>
 {% endfor %}
 {% endblock %}
