@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
-from django.db import transaction
 from django.core.exceptions import ValidationError
+
 
 class MyUser(AbstractUser):
     wallet = models.PositiveIntegerField(null=True, blank=True)
@@ -34,8 +34,8 @@ class Purchase(models.Model):
         ordering = ('-created',)
   
     def save(self, *args, **kwargs):
-        if self.product.in_stock >= self.quantity and self.consumer.wallet >= (self.product.price * self.quantity):
-            if not self.status and not self.return_status:
+        if not self.status and not self.return_status:
+            if self.product.in_stock >= self.quantity and self.consumer.wallet >= (self.product.price * self.quantity):
                 self.product.in_stock -= self.quantity
                 self.consumer.wallet -= self.product.price * self.quantity
                 self.consumer.save()

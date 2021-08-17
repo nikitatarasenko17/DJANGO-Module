@@ -1,20 +1,20 @@
-from django.urls import reverse_lazy
+from django.db import transaction
+from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.edit import DeleteView
 from myapp.forms import RegisterForm, AddProductForm, ReturnForm, PurchaseProductForm
+from myapp.models import Product, Purchase, Return
 from django.contrib.auth.mixins import LoginRequiredMixin, LoginSuperUserRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from django.views.generic import ListView, CreateView, UpdateView
-from myapp.models import Product, Purchase, Return
-from django.db import transaction
 from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 
 
 class ProductListView(ListView):
+    login_url = '/login/'
     model = Product
     paginate_by = 3
     ordering = ['title']
     template_name = 'product_list.html'
-    login_url = '/login/'
     extra_context = {'buy_form': PurchaseProductForm()}
 
 
@@ -40,7 +40,7 @@ class Logout(LoginRequiredMixin, LogoutView):
     login_url = 'login/'
 
 
-class AddProductView(LoginRequiredMixin, CreateView):
+class AddProductView(LoginSuperUserRequiredMixin, CreateView):
     login_url = "login/"
     form_class = AddProductForm
     template_name = 'add_product.html'
@@ -48,7 +48,7 @@ class AddProductView(LoginRequiredMixin, CreateView):
     success_url="/" 
 
 
-class UpdateProductView(LoginRequiredMixin, UpdateView):
+class UpdateProductView(LoginSuperUserRequiredMixin, UpdateView):
     login_url = "login/"
     template_name = 'update_product.html'
     model = Product
@@ -94,12 +94,12 @@ class ReturnProductView(LoginRequiredMixin, CreateView):
         return super().form_valid(form=form)
 
 
-class Confirm(DeleteView):
+class Confirm(LoginSuperUserRequiredMixin, DeleteView):
     model = Purchase
-    success_url = reverse_lazy('returns')
-
-    def delete(self, request, success_url=success_url, *args, **kwargs):
+    
+    def delete(self, request, *args, **kwargs):
         obj_product = self.get_object()
+        success_url= reverse_lazy('returns')
         self.product = obj_product.product
         self.consumer = obj_product.consumer
         self.consumer.wallet += self.product.price * obj_product.quantity
@@ -111,12 +111,12 @@ class Confirm(DeleteView):
         return HttpResponseRedirect(success_url)  
 
 
-class Reject(DeleteView):
+class Reject(LoginSuperUserRequiredMixin, DeleteView):
     model = Return
-    success_url = reverse_lazy('returns')
-
-    def delete(self, request, success_url=success_url, *args, **kwargs):
+    
+    def delete(self, request, *args, **kwargs):
         obj_return = self.get_object()
+        success_url= reverse_lazy('returns')
         self.ret_product = obj_return.ret_product
         self.ret_product.return_status = True
         with transaction.atomic():
@@ -125,7 +125,7 @@ class Reject(DeleteView):
         return HttpResponseRedirect(success_url)
 
             
-class ReturnListView(ListView):
+class ReturnListView(LoginRequiredMixin, ListView):
     login_url = "login/"
     model = Return
     template_name = 'return_product.html'
