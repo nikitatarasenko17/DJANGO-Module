@@ -12,17 +12,18 @@
 {% block content %}
 
 {% for obj in object_list %}
-
     <p>Consumer: {{ obj }}<br>
       Return product: {{ obj.ret_product.product }}<br>
       Return_time: {{ obj.created }}</p>
-    <form method="post" action="{% url "confirm" obj.ret_product.product.pk %}">
+    <form action="{% url 'confirm' obj.ret_product.pk %}" method="post">
       {% csrf_token %}
-      <button type="submit" value="Confirm"> Confirm </button>
+      <input type="hidden" name='obj.ret_product.pk' value="{{ obj.ret_product.pk }}"/>
+      <button type="submit" value="confirm"> Confirm </button>
     </form>
 
-    <form method="post" action="{% url "reject" obj.ret_product.pk %}">
+    <form action="{% url "reject" obj.pk %}" method="post">
       {% csrf_token %}
+      <input type="hidden" name='obj.product.pk' value="{{ obj.pk }}"/>
       <button type="submit" value="Reject"> Reject </button>
     </form>
 

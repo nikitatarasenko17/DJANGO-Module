@@ -32,23 +32,24 @@ class Purchase(models.Model):
 
     class Meta:
         ordering = ('-created',)
+  
+    def save(self, *args, **kwargs):
+        if self.product.in_stock >= self.quantity and self.consumer.wallet >= (self.product.price * self.quantity):
+            if not self.status and not self.return_status:
+                self.product.in_stock -= self.quantity
+                self.consumer.wallet -= self.product.price * self.quantity
+                self.consumer.save()
+                self.product.save()
+                super(Purchase, self).save(*args, **kwargs)
+            elif self.quantity > self.product.in_stock:
+                raise ValidationError('No available amount')
+            elif self.quantity * self.product.price > self.consumer.wallet:
+                raise ValidationError('You dont have enough money')
+            elif self.quantity == 0:
+                raise ValidationError('You dont enter the quantity')
 
     def __str__(self):
         return self.consumer.username
-    
-    def save(self, *args, **kwargs):
-        if self.product.in_stock >= self.quantity and self.consumer.wallet >= (self.product.price * self.quantity):
-            self.product.in_stock -= self.quantity
-            self.consumer.wallet -= self.product.price * self.quantity
-            self.consumer.save()
-            self.product.save()
-            super(Purchase, self).save(*args, **kwargs)
-        elif self.quantity > self.product.in_stock:
-            raise ValidationError('No available amount')
-        elif self.quantity * self.product.price > self.consumer.wallet:
-            raise ValidationError('You dont have enough money')
-        elif self.quantity == 0:
-            raise ValidationError('You dont enter the quantity')
 
 class Return(models.Model):
     ret_product = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name='ret_product')

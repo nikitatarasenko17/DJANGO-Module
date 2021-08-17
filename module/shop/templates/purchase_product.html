@@ -21,8 +21,8 @@
         {% if not purchase.status and not purchase.return_status %}
           <form method="post" action="{% url "ret_product" %}">
             {% csrf_token %}
-            <input type="hidden" name='product_id' value="{{obj.pk}}">
-            <button type="submit" value="Return">Return</button>
+            <input type="hidden" name='product_id' value="{{ obj.pk }}">
+            <button type="submit" value="Return"> Return </button>
           </form>
         {% endif %}
     {% endif %}

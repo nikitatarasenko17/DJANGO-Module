@@ -1,12 +1,12 @@
+from django.urls import reverse_lazy
 from django.views.generic.edit import DeleteView
-from myapp.forms import RegisterForm, ProductCreateForm, AddProductForm, ReturnForm, PurchaseProductForm
+from myapp.forms import RegisterForm, AddProductForm, ReturnForm, PurchaseProductForm
 from django.contrib.auth.mixins import LoginRequiredMixin, LoginSuperUserRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView
 from myapp.models import Product, Purchase, Return
 from django.db import transaction
 from django.http import HttpResponseRedirect
-
 
 
 class ProductListView(ListView):
@@ -21,6 +21,7 @@ class ProductListView(ListView):
 class Login(LoginView):
     next_page = '/'
     template_name = 'login.html'
+
     
 class Register(CreateView):
     form_class = RegisterForm
@@ -33,23 +34,19 @@ class Register(CreateView):
         obj.save()
         return super().form_valid(form=form)
 
+
 class Logout(LoginRequiredMixin, LogoutView):
     next_page = '/'
     login_url = 'login/'
 
-class ProductCreateView(LoginRequiredMixin, CreateView):
-    login_url = 'login/'
-    http_method_names = ['post']
-    form_class = ProductCreateForm
-    success_url = '/'
 
 class AddProductView(LoginRequiredMixin, CreateView):
     login_url = "login/"
-    http_method_names = ['get', 'post']
     form_class = AddProductForm
     template_name = 'add_product.html'
     extra_context = {'add_form': AddProductForm()}
     success_url="/" 
+
 
 class UpdateProductView(LoginRequiredMixin, UpdateView):
     login_url = "login/"
@@ -58,13 +55,14 @@ class UpdateProductView(LoginRequiredMixin, UpdateView):
     fields = ['title', 'description', 'price', 'in_stock']
     success_url="/" 
 
+
 class ProductPurchaseView(LoginRequiredMixin, CreateView):
     login_url = "login/"
     form_class = PurchaseProductForm
     template_name = 'product_list.html'
     paginate_by = 3
     success_url='/'
-
+    
     def form_valid(self, form):
         purchase = form.save(commit=False)
         purchase.consumer = self.request.user
@@ -82,6 +80,7 @@ class ProductPurchaseListView(LoginRequiredMixin, ListView):
         consumer = self.request.user
         return consumer.product.all()
 
+
 class ReturnProductView(LoginRequiredMixin, CreateView):
     login_url = "login/"
     form_class = ReturnForm
@@ -94,45 +93,43 @@ class ReturnProductView(LoginRequiredMixin, CreateView):
         self.ret_product_ret.save()
         return super().form_valid(form=form)
 
-class Confirm(LoginSuperUserRequiredMixin, DeleteView):
+
+class Confirm(DeleteView):
     model = Purchase
-    success_url = '/product/returns/'
+    success_url = reverse_lazy('returns')
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, success_url=success_url, *args, **kwargs):
         obj_product = self.get_object()
-        success_url = '/product/returns/'
-        item = obj_product.self.product
-        consumer = obj_product.consumer
-        consumer.wallet += item.price * obj_product.quantity
-        item.in_stock += obj_product.quantity
+        self.product = obj_product.product
+        self.consumer = obj_product.consumer
+        self.consumer.wallet += self.product.price * obj_product.quantity
+        self.product.in_stock += obj_product.quantity
         with transaction.atomic():
-            consumer.save()
-            item.save()
+            self.consumer.save()
+            self.product.save()
             obj_product.delete() 
-        return HttpResponseRedirect(success_url)           
+        return HttpResponseRedirect(success_url)  
 
-class Reject(LoginSuperUserRequiredMixin, DeleteView):
+
+class Reject(DeleteView):
     model = Return
-    success_url = '/product/returns/'
+    success_url = reverse_lazy('returns')
 
-    def delete(self, request, *args, **kwargs):
-        purchase = self.get_object()
-        success_url = '/product/returns/'
-        product = purchase.purchase
-        product.return_status = True
+    def delete(self, request, success_url=success_url, *args, **kwargs):
+        obj_return = self.get_object()
+        self.ret_product = obj_return.ret_product
+        self.ret_product.return_status = True
         with transaction.atomic():
-            product.save()
-            purchase.delete()
+            self.ret_product.save()
+            obj_return.delete()
         return HttpResponseRedirect(success_url)
+
             
-class ReturnListView(LoginSuperUserRequiredMixin, ListView):
+class ReturnListView(ListView):
     login_url = "login/"
     model = Return
     template_name = 'return_product.html'
     paginate_by = 3
 
-    def return_list(self):
-        consumer = self.request.user
-        return consumer.ret_product.all()
            
       
