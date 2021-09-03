@@ -22,6 +22,7 @@ class PurchaseProductForm(ModelForm):
     class Meta:
         model = Purchase
         fields = ['quantity']
+    
 
     
 

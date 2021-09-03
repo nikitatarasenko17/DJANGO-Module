@@ -25,6 +25,17 @@
             <button type="submit" value="Return"> Return </button>
           </form>
         {% endif %}
+        {% if messages %}
+          <ul class="messages">
+        {% for message in messages %}
+            {% if message.tags == "error" and purchase.return_status %}
+                <li style= "color:rgba(255, 0, 0, 0.74);">
+                    {{ message }}
+                </li>
+            {% endif %}
+        {% endfor %}
+          </ul>
+        {% endif %}
     {% endif %}
 {% endfor %}
 {% if page_obj.has_previous %}

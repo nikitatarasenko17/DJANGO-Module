@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
 from django.utils import timezone
-from django.core.exceptions import ValidationError
+from myapp.exception import NotAvailableAmount, NotEnoughMoney, NotQuantity, SoLate
 
 
 class MyUser(AbstractUser):
@@ -42,12 +42,12 @@ class Purchase(models.Model):
                 self.product.save()
                 super(Purchase, self).save(*args, **kwargs)
             elif self.quantity > self.product.in_stock:
-                raise ValidationError('No available amount')
+                raise NotAvailableAmount()
             elif self.quantity * self.product.price > self.consumer.wallet:
-                raise ValidationError('You dont have enough money')
+                raise NotEnoughMoney()
             elif self.quantity == 0:
-                raise ValidationError('You dont enter the quantity')
-
+                raise NotQuantity()
+                
     def __str__(self):
         return self.consumer.username
 
@@ -65,7 +65,18 @@ class Return(models.Model):
                 self.ret_product.save()
                 super(Return, self).save(*args, **kwargs)
         else:
-            raise ValidationError('You want to return product so late')
+            raise SoLate()
 
     def __str__(self):
         return str(self.ret_product)
+
+#HW №38
+class Author(models.Model):
+    name = models.CharField(max_length=50)
+    age = models.PositiveSmallIntegerField()
+
+
+class Book(models.Model):
+    title = models.CharField(max_length=150)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='writer')
+

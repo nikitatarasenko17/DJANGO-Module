@@ -5,8 +5,11 @@ from myapp.forms import RegisterForm, AddProductForm, ReturnForm, PurchaseProduc
 from myapp.models import Product, Purchase, Return
 from django.contrib.auth.mixins import LoginRequiredMixin, LoginSuperUserRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from myapp.exception import NotAvailableAmount, NotEnoughMoney, NotQuantity, SoLate
 
 
 class ProductListView(ListView):
@@ -19,20 +22,24 @@ class ProductListView(ListView):
 
 
 class Login(LoginView):
-    next_page = '/'
     template_name = 'login.html'
+        
+    def get_success_url(self):
+        return '/'
 
     
 class Register(CreateView):
     form_class = RegisterForm
     template_name = 'register.html'
-    success_url = '/'
 
     def form_valid(self, form):
         obj = form.save(commit=False)
         obj.wallet = 100000
         obj.save()
         return super().form_valid(form=form)
+
+    def get_success_url(self):
+        return '/'
 
 
 class Logout(LoginRequiredMixin, LogoutView):
@@ -64,18 +71,27 @@ class ProductPurchaseView(LoginRequiredMixin, CreateView):
     success_url='/'
     
     def form_valid(self, form):
-        purchase = form.save(commit=False)
-        purchase.consumer = self.request.user
-        purchase.product = Product.objects.get(pk=self.request.POST.get('product_id'))
-        return super().form_valid(form=form)
+        try:
+            purchase = form.save(commit=False)
+            purchase.consumer = self.request.user
+            purchase.product = Product.objects.get(pk=self.request.POST.get('product_id'))
+            return super().form_valid(form=form)
+        except NotAvailableAmount:
+            return messages.error(self.request,'No available amount')
+        except NotEnoughMoney:
+            return messages.error(self.request,'You dont have enough money')
+        except NotQuantity:
+            return messages.error(self.request,'You dont enter the quantity')
+        finally:
+            return redirect(f"/")
 
-    
+
 class ProductPurchaseListView(LoginRequiredMixin, ListView):
     login_url = "login/"
     model = Purchase
     template_name = 'purchase_product.html'
     extra_context = {"form": ReturnForm}
-              
+
     def purchase_list(self):
         consumer = self.request.user
         return consumer.product.all()
@@ -87,12 +103,18 @@ class ReturnProductView(LoginRequiredMixin, CreateView):
     success_url="/product/purchases/"
     
     def form_valid(self, form):
-        self.ret_product = Purchase.objects.get(pk=self.request.POST.get('product_id'))
-        self.ret_product_ret = form.save(commit=False)
-        self.ret_product_ret.ret_product = self.ret_product
-        self.ret_product_ret.save()
-        return super().form_valid(form=form)
-
+        try:
+            self.ret_product = Purchase.objects.get(pk=self.request.POST.get('product_id'))
+            self.ret_product_ret = form.save(commit=False)
+            self.ret_product_ret.ret_product = self.ret_product
+            self.ret_product_ret.save()
+        except SoLate:
+            self.ret_product.return_status = True
+            self.ret_product.status = True
+            self.ret_product.save()
+            messages.error(self.request,'You want to return product so late')
+        finally:
+            return redirect(f"/product/purchases/")
 
 class Confirm(LoginSuperUserRequiredMixin, DeleteView):
     model = Purchase

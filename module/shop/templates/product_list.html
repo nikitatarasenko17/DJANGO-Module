@@ -47,6 +47,17 @@
                 </form>
         {% endif %}
     {% endfor %}
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            {% if message.tags == "error" %}
+                <li style= "color:rgba(255, 0, 0, 0.74);">
+                    {{ message }}
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endif %}
 </div>
 {% if page_obj.has_previous %}
             <a href="?page=1">&laquo; first</a>
